@@ -15,22 +15,26 @@
  */
 package io.netty.incubating.maven.h3spec;
 
-import java.util.List;
+final class H3SpecCaseResult {
+    private final String name;
+    private final String rfcSection;
+    private final boolean failure;
 
-final class H3SpecResult {
-    private final List<H3SpecCaseResult> results;
-    private final String failureDetails;
-
-    H3SpecResult(List<H3SpecCaseResult> results, String failureDetails) {
-        this.results = results;
-        this.failureDetails = failureDetails;
+    H3SpecCaseResult(final String name, final String rfcSection, boolean failure) {
+        this.name = name;
+        this.rfcSection = rfcSection;
+        this.failure = failure;
     }
 
-    List<H3SpecCaseResult> results() {
-        return results;
+    String rfcSection() {
+        return rfcSection;
     }
 
-    String failureDetails() {
-        return failureDetails;
+    String name() {
+        return name;
+    }
+
+    boolean isFailure() {
+        return failure;
     }
 }

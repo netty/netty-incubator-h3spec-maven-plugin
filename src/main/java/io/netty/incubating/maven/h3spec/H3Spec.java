@@ -38,7 +38,7 @@ final class H3Spec {
 
     private H3Spec() { }
 
-    static List<H3SpecResult> execute(File targetDirectory, int port, Set<String> excludeSpecs) throws IOException {
+    static H3SpecResult execute(File targetDirectory, int port, Set<String> excludeSpecs) throws IOException {
         File h3spec = extractH3Spec(targetDirectory);
         Executor exec = new DefaultExecutor();
 
@@ -53,23 +53,34 @@ final class H3Spec {
         psh.start();
         int ret = exec.execute(buildCommandLine(h3spec, port, excludeSpecs));
         if (ret == 0 || ret == 1) {
-            List<H3SpecResult> results = new ArrayList<>();
+            StringBuilder sb = new StringBuilder();
+            List<H3SpecCaseResult> results = new ArrayList<>();
             // We check STDIN and STDERR as maven surefire may redirect one to the other.
-            parseH3SpecResult(err, results);
-            parseH3SpecResult(out, results);
-            return results;
+            parseH3SpecResult(err, results, sb);
+            parseH3SpecResult(out, results, sb);
+
+            return new H3SpecResult(results, sb.toString());
         }
         psh.stop();
 
-        return Collections.emptyList();
+        return new H3SpecResult(Collections.emptyList(), null);
     }
 
-    private static void parseH3SpecResult(ByteArrayOutputStream out, List<H3SpecResult> results) {
+    private static void parseH3SpecResult(ByteArrayOutputStream out, List<H3SpecCaseResult> results,
+                                          StringBuilder failureDetails) {
         String[] outLines = out.toString().split("\n");
+        boolean failure = false;
         for (String outLine: outLines) {
-            Matcher matcher = PATTERN.matcher(outLine);
-            if (matcher.matches()) {
-                results.add(new H3SpecResult(matcher.group(1), matcher.group(2), matcher.group(3) != null));
+            if (failure) {
+                failureDetails.append(outLine).append("\n");
+            } else {
+                Matcher matcher = PATTERN.matcher(outLine);
+                if (matcher.matches()) {
+                    results.add(new H3SpecCaseResult(matcher.group(1), matcher.group(2), matcher.group(3) != null));
+                } else if (outLine.startsWith("Failures:")) {
+                    failure = true;
+                    failureDetails.append(outLine).append("\n");
+                }
             }
         }
     }

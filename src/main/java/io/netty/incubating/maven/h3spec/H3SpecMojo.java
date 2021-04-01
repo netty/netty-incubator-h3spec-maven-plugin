@@ -159,7 +159,7 @@ public class H3SpecMojo extends AbstractMojo {
                 }
 
                 File outputDirectory = new File(project.getBuild().getDirectory());
-                List<H3SpecResult> results = H3Spec.execute(outputDirectory,
+                H3SpecResult result = H3Spec.execute(outputDirectory,
                         port, new HashSet<>(excludeSpecs));
 
                 File reportsDirectory = new File(outputDirectory, "h3spec-reports");
@@ -175,15 +175,16 @@ public class H3SpecMojo extends AbstractMojo {
                 }
 
                 File junitFile = new File(reportsDirectory, "TEST-h3spec.xml");
-                if (writeJUnitXmlReport(results, junitFile)) {
+                if (writeJUnitXmlReport(result.results(), junitFile)) {
                     StringBuilder sb = new StringBuilder("\nFailed test cases:\n");
-                    for (H3SpecResult result: results) {
-                        if (result.isFailure()) {
+                    for (H3SpecCaseResult r: result.results()) {
+                        if (r.isFailure()) {
                             sb.append("\t");
-                            sb.append(result.name()).append(" ").append(result.rfcSection());
+                            sb.append(r.name()).append(" ").append(r.rfcSection());
                             sb.append("\n\n");
                         }
                     }
+                    sb.append(result.failureDetails());
                     throw new MojoFailureException(sb.toString());
                 } else {
                     getLog().info("All test cases passed.");
@@ -216,7 +217,7 @@ public class H3SpecMojo extends AbstractMojo {
         }
     }
 
-    private boolean writeJUnitXmlReport(List<H3SpecResult> results, File junitFile) throws Exception {
+    private boolean writeJUnitXmlReport(List<H3SpecCaseResult> results, File junitFile) throws Exception {
         DocumentBuilderFactory docFactory = DocumentBuilderFactory .newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         String className = getClass().getName();
@@ -228,7 +229,7 @@ public class H3SpecMojo extends AbstractMojo {
         rootElement.setAttribute("errors", Integer.toString(0));
         rootElement.setAttribute("skipped", Integer.toString(0));
 
-        for (H3SpecResult r: results) {
+        for (H3SpecCaseResult r: results) {
             Element testcase = doc.createElement("testcase");
             testcase.setAttribute("classname", "H3Spec");
             testcase.setAttribute("name", r.name() + " " + r.rfcSection());
