@@ -77,6 +77,12 @@ public class H3SpecMojo extends AbstractMojo {
     @Parameter(property = "skip", defaultValue = "false")
     private boolean skip;
 
+    /**
+     * Allow to skip execution of plugin
+     */
+    @Parameter(property = "delay", defaultValue = "1000", required = true)
+    private long delay;
+
     @Component
     private MavenProject project;
 
@@ -142,8 +148,8 @@ public class H3SpecMojo extends AbstractMojo {
                     throw cause;
                 }
                 try {
-                    // wait for 500 milliseconds to give the server some time to startup
-                    Thread.sleep(500);
+                    // wait for a few milliseconds to give the server some time to startup
+                    Thread.sleep(delay);
                 } catch (InterruptedException ignore) {
                     Thread.currentThread().interrupt();
                 }
