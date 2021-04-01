@@ -100,21 +100,16 @@ final class H3Spec {
 
     private static String getH3SpecPath() {
         String os = System.getProperty("os.name").toLowerCase();
-        String arch = System.getProperty("os.arch").toLowerCase();
-        if (arch.equals("x86_64")) {
-            StringBuilder fileNameBuilder = new StringBuilder();
-            fileNameBuilder.append("/h3spec/");
-            // See https://github.com/kazu-yamamoto/h3spec/releases
-            if (os.contains("linux")) {
-                fileNameBuilder.append("h3spec-linux-x86_64");
-            } else if (os.contains("mac")) {
-                fileNameBuilder.append("h3spec-mac-x86_64");
-            } else {
-                throw new IllegalStateException("This OS is not supported.");
-            }
-            return fileNameBuilder.toString();
+        StringBuilder fileNameBuilder = new StringBuilder();
+        fileNameBuilder.append("/h3spec/");
+        // See https://github.com/kazu-yamamoto/h3spec/releases
+        if (os.contains("linux")) {
+            fileNameBuilder.append("h3spec-linux-x86_64");
+        } else if (os.contains("mac")) {
+            fileNameBuilder.append("h3spec-mac-x86_64");
+        } else {
+            throw new IllegalStateException("This OS is not supported.");
         }
-
-        throw new IllegalStateException("This architecture is not supported.");
+        return fileNameBuilder.toString();
     }
 }
