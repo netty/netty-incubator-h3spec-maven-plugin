@@ -17,9 +17,9 @@ file.
           <plugin>
             <groupId>io.netty.incubator</groupId>
             <artifactId>netty-incubator-h3spec-maven-plugin</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.2.Final-SNAPSHOT</version>
             <configuration>
-              <mainClass>io.netty.incubator.http3.example.Http3Server</mainClass>
+              <mainClass>io.netty.incubator.codec.http3.example.Http3ServerExample</mainClass>
               
               <!-- Optional configuration -->
               <!-- The port to bind the server too. Default is to choose a random free port. -->
