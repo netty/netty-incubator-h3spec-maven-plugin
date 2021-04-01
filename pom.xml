@@ -24,7 +24,7 @@
 
     <groupId>io.netty.incubator</groupId>
     <artifactId>netty-incubator-h3spec-maven-plugin</artifactId>
-    <version>0.0.1.Final-SNAPSHOT</version>
+    <version>0.0.1.Final</version>
     <packaging>maven-plugin</packaging>
     <url>https://netty.io/</url>
     <description>
@@ -213,13 +213,9 @@
                         <!-- Add the ant tasks from ant-contrib -->
                         <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
                         <property environment="env" />
-                            <mkdir dir="${project.build.outputDirectory}/h3spec"/>
-                            <get src="${h3spec.url}/${h3spec.version}/${h3spec.linux.name}"
-                                 dest="${project.build.outputDirectory}/h3spec/h3spec-linux-x86_64"
-                                 usetimestamp="true"/>
-                            <get src="${h3spec.url}/${h3spec.version}/${h3spec.mac.name}"
-                                 dest="${project.build.outputDirectory}/h3spec/${h3spec.mac.name}"
-                                 usetimestamp="true"/>
+                            <mkdir dir="${project.build.outputDirectory}/h3spec" />
+                            <get src="${h3spec.url}/${h3spec.version}/${h3spec.linux.name}" dest="${project.build.outputDirectory}/h3spec/h3spec-linux-x86_64" usetimestamp="true" />
+                            <get src="${h3spec.url}/${h3spec.version}/${h3spec.mac.name}" dest="${project.build.outputDirectory}/h3spec/${h3spec.mac.name}" usetimestamp="true" />
                         </target>
 
                     </configuration>
