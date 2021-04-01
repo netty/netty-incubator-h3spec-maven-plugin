@@ -104,7 +104,7 @@ public class H3SpecMojo extends AbstractMojo {
             return;
         }
 
-        final AtomicReference<Exception> error = new AtomicReference<Exception>();
+        final AtomicReference<Throwable> error = new AtomicReference<>();
         Thread runner = null;
         try {
             String host;
@@ -126,8 +126,9 @@ public class H3SpecMojo extends AbstractMojo {
                     Method main = clazz.getMethod("main", String[].class);
                     latch.countDown();
                     main.invoke(null, (Object) new String[] { String.valueOf(port) });
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     error.set(e);
+                    latch.countDown();
                 }
             });
             runner.setDaemon(true);
@@ -136,6 +137,10 @@ public class H3SpecMojo extends AbstractMojo {
             try {
                 latch.await();
 
+                Throwable cause = error.get();
+                if (cause != null) {
+                    throw cause;
+                }
                 try {
                     // wait for 500 milliseconds to give the server some time to startup
                     Thread.sleep(500);
@@ -177,7 +182,7 @@ public class H3SpecMojo extends AbstractMojo {
                 } else {
                     getLog().info("All test cases passed.");
                 }
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 throw new MojoExecutionException("Failure during execution", e);
             }
         } finally {
