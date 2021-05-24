@@ -28,7 +28,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,7 +37,8 @@ final class H3Spec {
 
     private H3Spec() { }
 
-    static H3SpecResult execute(File targetDirectory, int port, Set<String> excludeSpecs) throws IOException {
+    static H3SpecResult execute(File targetDirectory, Config config)
+            throws IOException {
         File h3spec = extractH3Spec(targetDirectory);
         Executor exec = new DefaultExecutor();
 
@@ -51,7 +51,7 @@ final class H3Spec {
         exec.setExitValues(new int[] { 0, 1 });
 
         psh.start();
-        int ret = exec.execute(buildCommandLine(h3spec, port, excludeSpecs));
+        int ret = exec.execute(buildCommandLine(h3spec, config));
         if (ret == 0 || ret == 1) {
             StringBuilder sb = new StringBuilder();
             List<H3SpecCaseResult> results = new ArrayList<>();
@@ -85,21 +85,26 @@ final class H3Spec {
         }
     }
 
-    private static CommandLine buildCommandLine(File h3spec, int port, Set<String> excludeSpecs) {
+    private static CommandLine buildCommandLine(File h3spec, Config config) {
         CommandLine cmd = new CommandLine(h3spec);
-        cmd.addArgument("127.0.0.1").addArgument(String.valueOf(port));
+        cmd.addArgument(config.host).addArgument(String.valueOf(config.port));
 
         // Exclude some tests if needed.
-        if (!excludeSpecs.isEmpty()) {
-            for (String exclude: excludeSpecs) {
-                cmd.addArguments("--skip='" + exclude + "'");
-            }
+        for (String exclude: config.excludeSpecs) {
+            cmd.addArguments("--skip='" + exclude + "'");
+        }
+        if (config.debug) {
+            cmd.addArguments("--debug");
+        }
+        if (config.timeoutMillis >= 0) {
+            cmd.addArguments("--timeout='" + config.timeoutMillis + "'");
         }
         return cmd;
     }
 
     private static File extractH3Spec(final File targetDirectory) throws IOException {
         URL h3SpecInJar = H3Spec.class.getResource(getH3SpecPath());
+        assert h3SpecInJar != null;
         File h3Spec = new File(targetDirectory, new File(h3SpecInJar.getPath()).getName());
         FileUtils.copyURLToFile(h3SpecInJar, h3Spec);
 
@@ -122,5 +127,21 @@ final class H3Spec {
             throw new IllegalStateException("This OS is not supported.");
         }
         return fileNameBuilder.toString();
+    }
+
+    static final class Config {
+        private final String host;
+        private final int port;
+        private final Iterable<String> excludeSpecs;
+        private final long timeoutMillis;
+        private final boolean debug;
+
+        Config(String host, int port, Iterable<String> excludeSpecs, long timeoutMillis, boolean debug) {
+            this.host = host;
+            this.port = port;
+            this.excludeSpecs = excludeSpecs;
+            this.timeoutMillis = timeoutMillis;
+            this.debug = debug;
+        }
     }
 }
