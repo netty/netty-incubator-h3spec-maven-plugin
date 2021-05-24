@@ -78,15 +78,26 @@ public class H3SpecMojo extends AbstractMojo {
     private boolean skip;
 
     /**
-     * Allow to skip execution of plugin
+     * Delay to allow server to startup before we run this test
      */
     @Parameter(property = "delay", defaultValue = "1000", required = true)
     private long delay;
 
+    /**
+     * Timeout in milliseconds for each test.
+     */
+    @Parameter(property = "timeoutMillis", defaultValue = "1000")
+    private long timeoutMillis;
+
+    /**
+     * Timeout in milliseconds for each test.
+     */
+    @Parameter(property = "debug", defaultValue = "false")
+    private boolean debug;
+
     @Component
     private MavenProject project;
 
-    @SuppressWarnings("unchecked")
     private ClassLoader getClassLoader() throws MojoExecutionException {
         try {
             List<String> classpathElements = project.getTestClasspathElements();
@@ -159,8 +170,8 @@ public class H3SpecMojo extends AbstractMojo {
                 }
 
                 File outputDirectory = new File(project.getBuild().getDirectory());
-                H3SpecResult result = H3Spec.execute(outputDirectory,
-                        port, new HashSet<>(excludeSpecs));
+                H3Spec.Config config = new H3Spec.Config(host, port, excludeSpecs, timeoutMillis, debug);
+                H3SpecResult result = H3Spec.execute(outputDirectory, config);
 
                 File reportsDirectory = new File(outputDirectory, "h3spec-reports");
                 if (!reportsDirectory.exists()) {
