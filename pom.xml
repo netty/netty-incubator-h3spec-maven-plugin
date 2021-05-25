@@ -24,7 +24,7 @@
 
     <groupId>io.netty.incubator</groupId>
     <artifactId>netty-incubator-h3spec-maven-plugin</artifactId>
-    <version>0.0.6.Final-SNAPSHOT</version>
+    <version>0.0.6.Final</version>
     <packaging>maven-plugin</packaging>
     <url>https://netty.io/</url>
     <description>
@@ -49,7 +49,7 @@
         <url>https://github.com/netty/netty-incubator-h3spec-maven-plugin</url>
         <connection>scm:git:git://github.com/netty/netty-incubator-h3spec-maven-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/netty/netty-incubator-h3spec-maven-plugin.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>netty-incubator-h3spec-maven-plugin-0.0.6.Final</tag>
     </scm>
 
     <developers>
