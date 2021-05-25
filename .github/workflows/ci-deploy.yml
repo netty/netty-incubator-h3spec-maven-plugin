@@ -1,0 +1,67 @@
+# ----------------------------------------------------------------------------
+# Copyright 2021 The Netty Project
+#
+# The Netty Project licenses this file to you under the Apache License,
+# version 2.0 (the "License"); you may not use this file except in compliance
+# with the License. You may obtain a copy of the License at:
+#
+#   https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+# ----------------------------------------------------------------------------
+name: Deploy project
+
+on:
+  push:
+    branches: [ main ]
+
+  schedule:
+    - cron: '30 8 * * 1'  # At 08:30 on Monday, every Monday.
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryhandler.count=5 -Dmaven.wagon.httpconnectionManager.ttlSeconds=240
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: s4u/maven-settings-action@v2.2.0
+        with:
+          servers: |
+            [{
+                "id": "sonatype-nexus-snapshots",
+                "username": "${{ secrets.SONATYPE_USERNAME }}",
+                "password": "${{ secrets.SONATYPE_PASSWORD }}"
+            }]
+
+      - uses: actions/checkout@v2
+
+      # Cache .m2/repository
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: deploy-cache-m2-repository-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            deploy-cache-m2-repository-
+
+      # Enable caching of Docker layers
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+        with:
+          key: docker-cache-deploy-{hash}
+          restore-keys: |
+            docker-cache-deploy-
+            docker-cache-
+
+      - name: Build docker image
+        run: docker-compose -f docker/docker-compose.centos-8.yaml -f docker/docker-compose.centos-8.18.yaml build
+
+      - name: Deploy project snapshot to sonatype
+        run: docker-compose -f docker/docker-compose.centos-8.yaml -f docker/docker-compose.centos-8.18.yaml run deploy
