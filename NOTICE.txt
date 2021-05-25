@@ -32,3 +32,10 @@ This product bundles h3spec
     * license/LICENSE.h3spec.txt (BSD-3)
   * HOMEPAGE:
     * https://github.com/kazu-yamamoto/h3spec
+
+This product contains the Maven wrapper scripts from 'Maven Wrapper', that provides an easy way to ensure a user has everything necessary to run the Maven build.
+
+  * LICENSE:
+    * license/LICENSE.mvn-wrapper.txt (Apache License 2.0)
+  * HOMEPAGE:
+    * https://github.com/takari/maven-wrapper
