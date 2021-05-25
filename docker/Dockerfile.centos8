@@ -23,5 +23,5 @@ RUN echo 'export JAVA_HOME="/jdk"' >> ~/.bashrc
 RUN echo 'PATH=/jdk/bin:$PATH' >> ~/.bashrc
 
 WORKDIR /opt
-RUN curl https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.8.1-bin.tar.gz | tar -xz
+RUN curl https://downloads.apache.org/maven/maven-3/3.8.1/binaries/apache-maven-3.8.1-bin.tar.gz | tar -xz
 RUN echo 'PATH=/opt/apache-maven-3.8.1/bin/:$PATH' >> ~/.bashrc
