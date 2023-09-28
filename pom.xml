@@ -70,8 +70,8 @@
         <netty.build.version>29</netty.build.version>
         <release.gpg.keyname />
         <release.gpg.passphrase />
-        <h3spec.version>v0.1.8</h3spec.version>
-        <h3spec.url>https://github.com/kazu-yamamoto/h3spec/releases/download</h3spec.url>
+        <h3spec.version>v0.1.9</h3spec.version>
+        <h3spec.url>https://github.com/kazu-yamamoto/h3spec/releases/tag</h3spec.url>
         <h3spec.linux.name>h3spec-linux-x86_64</h3spec.linux.name>
         <h3spec.mac.name>h3spec-mac-x86_64</h3spec.mac.name>
     </properties>
