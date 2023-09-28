@@ -27,15 +27,18 @@ env:
 
 jobs:
   verify:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up JDK 8
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
-          java-version: 8
+          distribution: 'zulu'
+          java-version: '8'
+
       # Cache .m2/repository
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
+        continue-on-error: true
         with:
           path: ~/.m2/repository
           key: verify-cache-m2-repository-${{ hashFiles('**/pom.xml') }}
@@ -51,31 +54,16 @@ jobs:
       - uses: actions/checkout@v2
 
       # Cache .m2/repository
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
+        continue-on-error: true
         with:
           path: ~/.m2/repository
           key: pr-cache-m2-repository-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             pr-cache-m2-repository-
 
-      # Enable caching of Docker layers
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
-        with:
-          key: docker-cache-pr-build-{hash}
-          restore-keys: |
-            docker-cache-pr-build-
-            docker-cache-pr-
-            docker-cache-
-
-      - name: Build docker image
-        run: docker-compose -f docker/docker-compose.centos-8.yaml -f docker/docker-compose.centos-8.18.yaml build
-
-      - name: Execute project build
-        run: docker-compose -f docker/docker-compose.centos-8.yaml -f docker/docker-compose.centos-8.18.yaml run build | tee build.output
-
-      - name: Checking for test failures
-        run: ./.github/scripts/check_build_result.sh build.output
+      - name: Build project
+        run: ./mvnw --file pom.xml clean package
 
       - name: Upload Test Results
         if: always()
