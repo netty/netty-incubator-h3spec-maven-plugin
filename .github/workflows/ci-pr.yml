@@ -65,13 +65,6 @@ jobs:
       - name: Build project
         run: ./mvnw --file pom.xml clean package
 
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-build
-          path: '**/target/surefire-reports/TEST-*.xml'
-
       - uses: actions/upload-artifact@v4
         if: ${{ failure() }}
         with:
