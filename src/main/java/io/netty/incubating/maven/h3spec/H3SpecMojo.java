@@ -34,14 +34,18 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -82,6 +86,12 @@ public class H3SpecMojo extends AbstractMojo {
      */
     @Parameter(property = "delay", defaultValue = "1000", required = true)
     private long delay;
+
+    /**
+     * Wait for the test server to print this ready message before running the test
+     */
+    @Parameter(property = "readyMessage")
+    private String readyMessage;
 
     /**
      * Timeout in milliseconds for each test.
@@ -136,7 +146,27 @@ public class H3SpecMojo extends AbstractMojo {
                 port = findRandomOpenPortOnAllLocalInterfaces();
             }
             CountDownLatch latch = new CountDownLatch(1);
+            boolean hasReadyMessage = !readyMessage.isEmpty();
+            CountDownLatch readyMessageLatch = new CountDownLatch(hasReadyMessage ? 1 : 0);
             runner = new Thread(() -> {
+                PrintStream oldOut = hasReadyMessage ? System.out : null;
+                if (oldOut != null) {
+                    // Filtering stream looking for the ready message
+                    FilterOutputStream filterOut = new FilterOutputStream(oldOut) {
+                        @Override
+                        public void write(byte[] b, int off, int len) throws IOException {
+                            if (new String(b, off, len).contains(readyMessage)) {
+                                readyMessageLatch.countDown();
+                            }
+                            super.write(b, off, len);
+                        }
+                    };
+                    // Buffering stream ensuring that output always goes through the `write(byte[], int, int)` method
+                    BufferedOutputStream bufOut = new BufferedOutputStream(filterOut);
+                    // Finally, Auto-flushing print stream as required for System.out.
+                    PrintStream printStream = new PrintStream(bufOut, true);
+                    System.setOut(printStream);
+                }
                 try {
                     Thread.currentThread().setContextClassLoader(getClassLoader());
                     Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(mainClass);
@@ -146,6 +176,10 @@ public class H3SpecMojo extends AbstractMojo {
                 } catch (Throwable e) {
                     error.set(e);
                     latch.countDown();
+                } finally {
+                    if (oldOut != null) {
+                        System.setOut(oldOut);
+                    }
                 }
             });
             runner.setDaemon(true);
@@ -164,6 +198,9 @@ public class H3SpecMojo extends AbstractMojo {
                 } catch (InterruptedException ignore) {
                     Thread.currentThread().interrupt();
                 }
+
+                // Wait for the ready message, if any
+                readyMessageLatch.await();
 
                 if (excludeSpecs == null) {
                     excludeSpecs = Collections.emptyList();
